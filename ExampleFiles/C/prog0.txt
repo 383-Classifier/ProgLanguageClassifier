@@ -1,0 +1,84 @@
+/*
+ * Calculating PI
+ *
+ * Author: Michael Neumann (mneumann@fantasy-coders.de)
+ * Date: 03.12.2002
+ *
+ * Requires GNU MP (tested with version 4.1) 
+ * (http://www.swox.com/gmp/)
+ *
+ * To compile:
+ *   cc pi.c -o pi -I/usr/local/include -L/usr/local/lib -lgmp
+ */
+
+#include "gmp.h"
+#include <stdio.h>
+
+int main(int argc, char **argv) {
+  mpz_t k, a, b, a1, b1, p, q, d, d1;
+  mpz_t t1, t2, t3, t4;  /* temporary */
+
+  /* Initialize and assign integers */
+
+  mpz_init(p);
+  mpz_init(q);
+  mpz_init(d);
+  mpz_init(d1);
+  mpz_init(t1);
+  mpz_init(t2);
+  mpz_init(t3);
+  mpz_init(t4);
+  mpz_init_set_ui(k, 2);
+  mpz_init_set_ui(a, 4);
+  mpz_init_set_ui(b, 1);
+  mpz_init_set_ui(a1, 12);
+  mpz_init_set_ui(b1, 4);
+
+  for(;;) {
+    /* Next approximation */
+
+    mpz_mul(p, k, k);                   /* p = k * k */
+    mpz_mul_ui(q, k, 2);                /* q = k * 2 */
+    mpz_add_ui(q, q, 1);                /* q = q + 1 */
+    mpz_add_ui(k, k, 1);                /* k = k + 1 */
+
+    mpz_set(t1, a1);                    /* t1 = a1 */
+    mpz_set(t2, b1);                    /* t2 = b1 */
+
+    /* a1 = p*a + q*a1 */
+    mpz_mul(t3, p, a);                  /* t3 = p * a */
+    mpz_mul(t4, q, a1);                 /* t4 = q * a1 */
+    mpz_add(a1, t3, t4);                /* a1 = t3 + t4 */
+
+    /* b1 = p*b + q*b1 */
+    mpz_mul(t3, p, b);                  /* t3 = p * b */
+    mpz_mul(t4, q, b1);                 /* t4 = q * b1 */
+    mpz_add(b1, t3, t4);                /* b1 = t3 + t4 */
+
+    mpz_set(a, t1);
+    mpz_set(b, t2);
+
+    /* Print common digits */
+
+    mpz_tdiv_q(d, a, b);                /* d = a / b */
+    mpz_tdiv_q(d1, a1, b1);             /* d1 = a1 / b1 */
+
+    while (mpz_cmp(d, d1) == 0) {       /* d == d1 */
+      mpz_out_str(stdout, 10, d1);
+      fflush(stdout);
+
+      /* a = 10*(a mod b) */
+      mpz_tdiv_r(t1, a, b);             /* t1 = a mod b */
+      mpz_mul_si(a, t1, 10);            /* a = t1 * 10 */
+
+      /* a1 = 10*(a1 mod b1) */
+      mpz_tdiv_r(t1, a1, b1);           /* t1 = a1 mod b1 */
+      mpz_mul_si(a1, t1, 10);           /* a = t1 * 10 */
+
+      mpz_tdiv_q(d, a, b);              /* d = a / b */
+      mpz_tdiv_q(d1, a1, b1);           /* d1 = a1 / b1 */
+    }
+  }
+
+  return 0;
+}

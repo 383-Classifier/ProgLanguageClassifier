@@ -1,0 +1,18 @@
+
+/*
+    Gr??ter Gemeinsamer Teiler
+
+    Es sind nur Werte gr??er als Null zul?ssig.
+*/
+
+int ggt( int a, int b )
+{
+  int temp;
+  if( a < b ) { temp=a; a=b; b=temp; }
+  while( (temp = a%b) != 0 )
+  {
+    a = b;
+    b = temp;
+  };
+  return b;
+}

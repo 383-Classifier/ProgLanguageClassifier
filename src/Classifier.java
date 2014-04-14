@@ -5,7 +5,7 @@ public class Classifier {
 	
 	private HashMap<String, HashMap<String, Integer>> wordCountsByClass;
 	private HashMap<String, Integer> wordCountsTotal;
-	private double alpha = 1;
+	private double alpha = 1.0;
 	
 	public Classifier() {
 		wordCountsByClass = new HashMap<String, HashMap<String, Integer>>();

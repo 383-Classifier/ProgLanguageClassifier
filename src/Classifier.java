@@ -13,28 +13,31 @@ public class Classifier {
 	}
 	
 	public void train(String nbcClass, HashMap<String, Integer> bag) {
-		if !wordCountsByClass.containsKey(nbcClass)
+		if (!wordCountsByClass.containsKey(nbcClass))
 			wordCountsByClass.put(nbcClass, new HashMap<String, Integer>());
 		
-		if !wordCountsTotal.containsKey(nbcClass)
+		if (!wordCountsTotal.containsKey(nbcClass))
 			wordCountsTotal.put(nbcClass, 0);
 		
-		for String word in bag.keySet() {
-			if wordCountsByClass.get(nbcClass).containsKey(word)
-				wordCountsByClass.get(nbcClass).get(word) += bag.get(word) ;
-			else
+		for (String word : bag.keySet()) {
+			if (wordCountsByClass.get(nbcClass).containsKey(word)) {
+				int oldCount = wordCountsByClass.get(nbcClass).get(word);
+				wordCountsByClass.get(nbcClass).put(word, oldCount + bag.get(word));
+			} else {
 				wordCountsByClass.get(nbcClass).put(word, bag.get(word));
-			wordCountsTotal.get(nbcClass) += bag.get(word);
+			}
+			int oldCount = wordCountsTotal.get(nbcClass);
+			wordCountsTotal.put(nbcClass, oldCount + bag.get(word));
 		}
 	}
 	
 	public String test(HashMap<String, Integer> bag) {
-		String maximumClass = null
+		String maximumClass = null;
 		double maximumValue = 0;
 		
-		for nbcClass in wordCountsByClass.keySet() {
-			value = getClassPosterior(nbcClass, bag);
-			if value > maximumValue {
+		for (String nbcClass : wordCountsByClass.keySet()) {
+			double value = getClassPosterior(nbcClass, bag);
+			if (value > maximumValue) {
 				maximumValue = value;
 				maximumClass = nbcClass;
 			}
@@ -60,9 +63,9 @@ public class Classifier {
 	private double getClassPosterior(String nbcClass, HashMap<String, Integer> bag) {
 		double sumOfLogLikelihoods = 0;
 		
-		for String word in bag.keySet() {
-			wordLogLikelihood = bag.get(word) * Math.log(getWordLikelihood(nbcClass, word));
-			sumOfLogLikelihoods += wordLogLikelihood
+		for (String word : bag.keySet()) {
+			double wordLogLikelihood = bag.get(word) * Math.log(getWordLikelihood(nbcClass, word));
+			sumOfLogLikelihoods += wordLogLikelihood;
 		}
 		
 		return Math.log(getClassPrior(nbcClass)) + sumOfLogLikelihoods;

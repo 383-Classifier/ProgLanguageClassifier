@@ -4,11 +4,10 @@ import java.util.HashMap;
 
 public class NBCTester extends NBCBagger{
 
-	String testNBC(File file) throws FileNotFoundException{
-		String predictedclass = null;
+	String testNBC(File file, Classifier cla) throws FileNotFoundException{
+		Classifier classifier = cla;
 		HashMap<String,Integer> bag = makeBag(file);
-		
-		return predictedclass;
+		return classifier.test(bag);
 	}
 	
 }

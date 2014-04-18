@@ -1,7 +1,8 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.io.Serializable;
 
-public class Classifier {
+public class Classifier implements Serializable{
 	
 	private HashMap<String, HashMap<String, Integer>> wordCountsByClass;
 	private HashMap<String, Integer> wordCountsTotal;

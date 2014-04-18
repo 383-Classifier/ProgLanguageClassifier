@@ -4,9 +4,10 @@ import java.io.FileNotFoundException;
 
 public class NBCTrainer extends NBCBagger{
 
-	public void trainNBC(File file, String lclass) throws FileNotFoundException{
+	public void trainNBC(File file, Classifier cla, String lclass) throws FileNotFoundException{
+		Classifier classifier = cla;
 		HashMap<String,Integer> bag = makeBag(file);
-
+		classifier.train(lclass, bag);
 	}
 	
 }

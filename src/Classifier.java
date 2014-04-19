@@ -48,7 +48,10 @@ public class Classifier implements Serializable{
 		
 		for (String nbcClass : wordCountsByClass.keySet()) {
 			double value = getClassPosterior(nbcClass, bag);
-			if (value > maximumValue) {
+			if (maximumValue == 0) {
+				maximumValue = value;
+				maximumClass = nbcClass;
+			} else if (value < maximumValue) {
 				maximumValue = value;
 				maximumClass = nbcClass;
 			}
@@ -80,7 +83,7 @@ public class Classifier implements Serializable{
 				sumOfLogLikelihoods += wordLogLikelihood;
 			}
 		}
-		
-		return Math.log(getClassPrior(nbcClass)) + sumOfLogLikelihoods;
+
+		return -1 * Math.log(getClassPrior(nbcClass)) + sumOfLogLikelihoods;
 	}
 }

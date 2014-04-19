@@ -17,28 +17,19 @@ public class Classifier implements Serializable{
 		if (!wordCountsByClass.containsKey(nbcClass))
 			wordCountsByClass.put(nbcClass, new HashMap<String, Integer>());
 		
-		//if (!wordCountsTotal.containsKey(nbcClass))
-		//	wordCountsTotal.put(nbcClass, 0);
+		if (!wordCountsTotal.containsKey(nbcClass))
+			wordCountsTotal.put(nbcClass, 0);
 		
 		for (String word : bag.keySet()) {
 			if (wordCountsByClass.get(nbcClass).containsKey(word)) {
 				int oldCount = wordCountsByClass.get(nbcClass).get(word);
 				wordCountsByClass.get(nbcClass).put(word, oldCount + bag.get(word));
-				
-				if (!wordCountsTotal.containsKey(word))
-					wordCountsTotal.put(word, bag.get(word));
-				else
-					wordCountsTotal.put(word, wordCountsTotal.get(word) + bag.get(word));
 			} else {
 				wordCountsByClass.get(nbcClass).put(word, bag.get(word));
-				if (!wordCountsTotal.containsKey(word))
-					wordCountsTotal.put(word, bag.get(word));
-				else
-					wordCountsTotal.put(word, wordCountsTotal.get(word) + bag.get(word));
 			}		
 			
-			//int oldCount = wordCountsTotal.get(nbcClass);
-			//wordCountsTotal.put(word, oldCount + bag.get(word));
+			int oldCount = wordCountsTotal.get(nbcClass);
+			wordCountsTotal.put(nbcClass, oldCount + bag.get(word));
 		}
 	}
 	
@@ -51,7 +42,7 @@ public class Classifier implements Serializable{
 			if (maximumValue == 0) {
 				maximumValue = value;
 				maximumClass = nbcClass;
-			} else if (value < maximumValue) {
+			} else if (value > maximumValue) {
 				maximumValue = value;
 				maximumClass = nbcClass;
 			}
@@ -60,12 +51,11 @@ public class Classifier implements Serializable{
 		return maximumClass;
 	}
 	
-	private double getWordLikelihood(String nbcClass, String word) {
-		
+	private double getWordLikelihood(String nbcClass, String word) {	
 		double alphaSum = wordCountsByClass.get(nbcClass).size() * alpha;
-			double nc = wordCountsTotal.get(word);
-			double nci = wordCountsByClass.get(nbcClass).get(word);
-			return (nci + alpha) / (nc + alphaSum);
+		double nc = wordCountsTotal.get(nbcClass);
+		double nci = wordCountsByClass.get(nbcClass).get(word);
+		return (nci + alpha) / (nc + alphaSum);
 	}
 	
 	private double getClassPrior(String nbcClass) {
@@ -79,11 +69,12 @@ public class Classifier implements Serializable{
 		
 		for (String word : bag.keySet()) {
 			if (wordCountsByClass.get(nbcClass).containsKey(word)) {
-				double wordLogLikelihood = -1  * bag.get(word) * Math.log(getWordLikelihood(nbcClass, word));
+				double wordLogLikelihood = -1  *  Math.log(bag.get(word) * getWordLikelihood(nbcClass, word));
 				sumOfLogLikelihoods += wordLogLikelihood;
 			}
 		}
-
+		
+		System.out.println(nbcClass + " " + sumOfLogLikelihoods);
 		return -1 * Math.log(getClassPrior(nbcClass)) + sumOfLogLikelihoods;
 	}
 }

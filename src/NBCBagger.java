@@ -25,11 +25,22 @@ public class NBCBagger{
 	
 		try {
 			reader = new FileReader(file);
-			int c;
+			int c, lastc;
+			lastc = 0;
 			String token = "";
 			while ((c = reader.read()) != -1) {
 				if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')) {
-					token += Character.toChars(c);
+					if (('a' <= lastc && lastc <= 'z') || ('A' <= lastc && lastc <= 'Z')) {
+						token += String.valueOf((char) c);
+					} else {
+						if(bag.containsKey(token)) {
+							bag.put(token, bag.get(token)+1);
+						} else {
+							bag.put(token, 1);
+						}
+						token = "";
+						token += String.valueOf((char) c);
+					}
 				} else {
 					if(bag.containsKey(token)) {
 						bag.put(token, bag.get(token)+1);
@@ -37,8 +48,9 @@ public class NBCBagger{
 						bag.put(token, 1);
 					}
 					token = "";
-					token += Character.toChars(c);
+					token += String.valueOf((char) c);
 				}
+				lastc = c;
 			}
 			if (token != "") {
 				if(bag.containsKey(token)) {

@@ -17,18 +17,28 @@ public class Classifier implements Serializable{
 		if (!wordCountsByClass.containsKey(nbcClass))
 			wordCountsByClass.put(nbcClass, new HashMap<String, Integer>());
 		
-		if (!wordCountsTotal.containsKey(nbcClass))
-			wordCountsTotal.put(nbcClass, 0);
+		//if (!wordCountsTotal.containsKey(nbcClass))
+		//	wordCountsTotal.put(nbcClass, 0);
 		
 		for (String word : bag.keySet()) {
 			if (wordCountsByClass.get(nbcClass).containsKey(word)) {
 				int oldCount = wordCountsByClass.get(nbcClass).get(word);
 				wordCountsByClass.get(nbcClass).put(word, oldCount + bag.get(word));
+				
+				if (!wordCountsTotal.containsKey(word))
+					wordCountsTotal.put(word, bag.get(word));
+				else
+					wordCountsTotal.put(word, wordCountsTotal.get(word) + bag.get(word));
 			} else {
 				wordCountsByClass.get(nbcClass).put(word, bag.get(word));
-			}
-			int oldCount = wordCountsTotal.get(nbcClass);
-			wordCountsTotal.put(nbcClass, oldCount + bag.get(word));
+				if (!wordCountsTotal.containsKey(word))
+					wordCountsTotal.put(word, bag.get(word));
+				else
+					wordCountsTotal.put(word, wordCountsTotal.get(word) + bag.get(word));
+			}		
+			
+			//int oldCount = wordCountsTotal.get(nbcClass);
+			//wordCountsTotal.put(word, oldCount + bag.get(word));
 		}
 	}
 	
@@ -48,11 +58,11 @@ public class Classifier implements Serializable{
 	}
 	
 	private double getWordLikelihood(String nbcClass, String word) {
-		double nci = wordCountsByClass.get(nbcClass).get(word);
-		double nc = wordCountsTotal.get(nbcClass);
-		double alphaSum = wordCountsByClass.get(nbcClass).size() * alpha;
 		
-		return (nci + alpha) / (nc + alphaSum);
+		double alphaSum = wordCountsByClass.get(nbcClass).size() * alpha;
+			double nc = wordCountsTotal.get(word);
+			double nci = wordCountsByClass.get(nbcClass).get(word);
+			return (nci + alpha) / (nc + alphaSum);
 	}
 	
 	private double getClassPrior(String nbcClass) {
@@ -65,8 +75,10 @@ public class Classifier implements Serializable{
 		double sumOfLogLikelihoods = 0;
 		
 		for (String word : bag.keySet()) {
-			double wordLogLikelihood = bag.get(word) * Math.log(getWordLikelihood(nbcClass, word));
-			sumOfLogLikelihoods += wordLogLikelihood;
+			if (wordCountsByClass.get(nbcClass).containsKey(word)) {
+				double wordLogLikelihood = -1  * bag.get(word) * Math.log(getWordLikelihood(nbcClass, word));
+				sumOfLogLikelihoods += wordLogLikelihood;
+			}
 		}
 		
 		return Math.log(getClassPrior(nbcClass)) + sumOfLogLikelihoods;

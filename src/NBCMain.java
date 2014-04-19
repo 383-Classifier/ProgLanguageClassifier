@@ -14,14 +14,14 @@ public class NBCMain{
 		 * Wrong argument format. We'll decide on the program's arguments and then we can set up the usage warning
 		 */
 		if(args.length<4){
-			System.out.println("usage: [train/test] [documentDir] [loadFile] [saveFile] [ifTrain:class]");
+			System.out.println("usage: [train/test] [documentDir] [loadFile] [saveFile]");
 			System.exit(0);
 		}
 		
 		/*
 		 * init
 		 */
-		File docsdirectory = new File(args[1]);			//directory of files to test/train
+		File docsdirectory = new File(args[1]);			//directory of class directories each containing files to test/train, 
 		String loadfile = args[2];						//existing serialized
 		String savefile = args[3];						//where to save new serialized 
 		String classtype = null;
@@ -45,11 +45,21 @@ public class NBCMain{
 		/*
 		 * Train over documents in docsdirectory for classtype
 		 */
-		if(args.length>4 && args[0].contains("train")){
-			classtype = args[4];	
+		if(args.length>3 && args[0].contains("train")){
 			NBCTrainer trainer = new NBCTrainer();
-			for(File doc : docsdirectory.listFiles()){
-				trainer.trainNBC(doc, classifier, classtype);
+			for(File docclassdir : docsdirectory.listFiles()){
+				classtype = docclassdir.getName();
+				for(File doc : docclassdir.listFiles()) {
+					trainer.trainNBC(doc, classifier, classtype);
+				}
+			}
+			
+			NBCTester tester = new NBCTester();
+			File testdirectory = new File("TestFiles");
+			if (testdirectory.exists()) {
+				for(File doc : testdirectory.listFiles()){
+					System.out.println(doc.getName() + ": " + tester.testNBC(doc, classifier));
+				}
 			}
 		} 
 		

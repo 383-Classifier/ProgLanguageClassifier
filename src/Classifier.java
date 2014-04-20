@@ -1,9 +1,9 @@
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.io.Serializable;
 
 public class Classifier implements Serializable{
 	
+	private static final long serialVersionUID = 1L;
 	private HashMap<String, HashMap<String, Integer>> wordCountsByClass;
 	private HashMap<String, Integer> wordCountsTotal;
 	private double alpha = 1.0;
@@ -51,10 +51,25 @@ public class Classifier implements Serializable{
 		return maximumClass;
 	}
 	
+	/**
+	 * Calculates the word likelihood using the formula in paper:
+	 * (nci + alpha ) / (nc + alphaSum)
+	 * where: nci = number of times word i appears in the documents in class c
+	 * nc =  total number of word occurrences in class c
+	 * alpha = the smoothing constant, imagined occurrences 
+	 * alphaSum = the constant, over all words in class c (alpha * number of keys in class)
+	 * @param nbcClass	The class we are computing likelihood over
+	 * @param word		The word we are calculating likelihood of
+	 * @return			The Pr( word | class )
+	 */
 	private double getWordLikelihood(String nbcClass, String word) {	
 		double alphaSum = wordCountsByClass.get(nbcClass).size() * alpha;
 		double nc = wordCountsTotal.get(nbcClass);
-		double nci = wordCountsByClass.get(nbcClass).get(word);
+		double nci;
+		if (wordCountsByClass.get(nbcClass).containsKey(word))
+			nci = wordCountsByClass.get(nbcClass).get(word);
+		else
+			nci = 0;
 		return (nci + alpha) / (nc + alphaSum);
 	}
 	
@@ -68,13 +83,11 @@ public class Classifier implements Serializable{
 		double sumOfLogLikelihoods = 0;
 		
 		for (String word : bag.keySet()) {
-			if (wordCountsByClass.get(nbcClass).containsKey(word)) {
-				double wordLogLikelihood = -1  * bag.get(word) * Math.log(getWordLikelihood(nbcClass, word));
-				sumOfLogLikelihoods += wordLogLikelihood;
-			}
+			int wordFrequency = bag.get(word);
+			double wordLogLikelihood = wordFrequency * Math.log(getWordLikelihood(nbcClass, word));
+			sumOfLogLikelihoods += wordLogLikelihood;
 		}
-		
-		System.out.println(nbcClass + " " + sumOfLogLikelihoods);
-		return -1 * Math.log(getClassPrior(nbcClass)) + sumOfLogLikelihoods;
+
+		return Math.log(getClassPrior(nbcClass)) + sumOfLogLikelihoods;
 	}
 }

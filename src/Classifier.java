@@ -35,7 +35,7 @@ public class Classifier implements Serializable{
 	
 	public String test(HashMap<String, Integer> bag) {
 		String maximumClass = null;
-		double maximumValue = 0;
+		double maximumValue = Double.NEGATIVE_INFINITY;
 		
 		for (String nbcClass : wordCountsByClass.keySet()) {
 			double value = getClassPosterior(nbcClass, bag);

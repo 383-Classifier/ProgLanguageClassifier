@@ -71,9 +71,10 @@ public class NBCBagger{
 					break;
 				}
 			}
-			if (state != State.EMPTY)
+			if (state != State.EMPTY) {
 				put(bag,token);
-			
+				state = State.EMPTY;
+			}
 		} finally {
 			if (reader != null) {
                 reader.close();

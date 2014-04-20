@@ -18,6 +18,19 @@ public class NBCBagger{
 	public void setClassifier(Classifier nbc) {
 		this.nbc = nbc;
 	}
+	
+	private enum State {
+	    EMPTY, ALPH, SYMBOL
+	}
+	
+	private void put(HashMap<String,Integer> bag, String token) {
+		int count;
+		if (bag.containsKey(token))
+			count = bag.get(token);
+		else
+			count = 0;
+		bag.put(token, count + 1);
+	}
 
 	public HashMap<String, Integer> makeBag(File file) throws IOException{
 		FileReader reader = null;
@@ -25,40 +38,41 @@ public class NBCBagger{
 	
 		try {
 			reader = new FileReader(file);
-			int c, lastc;
-			lastc = 0;
+			int c;
 			String token = "";
+			State state = State.EMPTY;
 			while ((c = reader.read()) != -1) {
-				if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')) {
-					if (('a' <= lastc && lastc <= 'z') || ('A' <= lastc && lastc <= 'Z')) {
-						token += String.valueOf((char) c);
+				switch(state) {
+				case EMPTY:
+					token = Character.toString((char)c);
+					if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')) {
+						state = State.ALPH;
 					} else {
-						if(bag.containsKey(token)) {
-							bag.put(token, bag.get(token)+1);
-						} else {
-							bag.put(token, 1);
-						}
+						state = State.SYMBOL;
+						put(bag,token);
 						token = "";
-						token += String.valueOf((char) c);
-					}
-				} else {
-					if(bag.containsKey(token)) {
-						bag.put(token, bag.get(token)+1);
+						state = State.EMPTY;
+					}	
+					break;
+				case ALPH:
+					if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')) {
+						token += (char)c;
 					} else {
-						bag.put(token, 1);
+						put(bag,token);
+						token = Character.toString((char)c);
+						state = State.SYMBOL;
+						put(bag,token);
+						token = "";
+						state = State.EMPTY;
 					}
-					token = "";
-					token += String.valueOf((char) c);
+					break;
+				case SYMBOL:
+					//We should never be in this state at the beginning of loop
+					break;
 				}
-				lastc = c;
 			}
-			if (token != "") {
-				if(bag.containsKey(token)) {
-					bag.put(token, bag.get(token)+1);
-				} else {
-					bag.put(token, 1);
-				}	
-			}
+			if (state != State.EMPTY)
+				put(bag,token);
 			
 		} finally {
 			if (reader != null) {
@@ -68,5 +82,4 @@ public class NBCBagger{
 		
 		return bag;
 	}
-
 }

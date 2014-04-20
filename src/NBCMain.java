@@ -68,11 +68,23 @@ public class NBCMain{
 			}
 		} 
 		
+		/* 
+		 * Detailed Test
+		 */
+		else if(args[0].contains("test-detailed")){
+			NBCTester tester = new NBCTester();
+			tester.setClassifier(classifier);
+			for(File doc : docsdirectory.listFiles()){
+				System.out.println(doc.getName() + ":\n" + tester.testDetailedNBC(doc));
+			}
+		}
+		
 		/*
 		 * Test over document(s) in docsdirectory
 		 * 		I was thinking of storing each document's result in a hashmap to print out later
 		 * 		but for now I'll leave it to print the file name and its result when it makes a guess
 		 */
+		
 		else if(args[0].contains("test")){
 			NBCTester tester = new NBCTester();
 			tester.setClassifier(classifier);
@@ -80,6 +92,7 @@ public class NBCMain{
 				System.out.println(doc.getName() + ": " + tester.testNBC(doc));
 			}
 		}
+		
 		
 		/*
 		 * Wrong argument format, I guess

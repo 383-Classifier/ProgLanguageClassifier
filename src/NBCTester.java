@@ -15,4 +15,14 @@ public class NBCTester extends NBCBagger{
 		return nbc.test(bag);
 	}
 	
+	String testDetailedNBC(File file) throws FileNotFoundException{
+		HashMap<String, Integer> bag = null;
+		try {
+			bag = makeBag(file);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return nbc.testDetailed(bag);
+	}
+	
 }

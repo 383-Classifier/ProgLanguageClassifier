@@ -1,4 +1,6 @@
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.io.Serializable;
 
 public class Classifier implements Serializable{
@@ -46,6 +48,23 @@ public class Classifier implements Serializable{
 		}
 		
 		return maximumClass;
+	}
+	
+	public String testDetailed(HashMap<String, Integer> bag) {
+		String maximumClass = null;
+		double maximumValue = Double.NEGATIVE_INFINITY;
+		HashMap<String, Double> results = new HashMap<String, Double>() ;
+		
+		for (String nbcClass : wordCountsByClass.keySet()) {
+			double value = getClassPosterior(nbcClass, bag);
+			if (value > maximumValue) {
+				maximumValue = value;
+				maximumClass = nbcClass;
+			}
+			results.put(nbcClass, value);
+		}
+		
+		return results.toString() + "\nBest fit: " + maximumClass + "\n";
 	}
 	
 	/**

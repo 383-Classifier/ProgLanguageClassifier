@@ -5,7 +5,7 @@ import java.io.IOException;
 
 public class NBCBagger{
 
-	private Classifier nbc;
+	protected Classifier nbc;
 	
 	public NBCBagger() {
 		setClassifier(new Classifier());

@@ -5,7 +5,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.HashMap;
 
 public class NBCMain{
 	
@@ -32,7 +31,9 @@ public class NBCMain{
 			ObjectInputStream objin = new ObjectInputStream(filein);
 			classifier = (Classifier) objin.readObject();
 			filein.close(); objin.close();
+			System.out.println("Classifier read in from " + loadfile);
 		}catch(FileNotFoundException e){
+			System.out.println("New classifier created");
 			classifier = new Classifier();
 		}catch(IOException e){
 			e.printStackTrace();
@@ -47,18 +48,22 @@ public class NBCMain{
 		 */
 		if(args.length>3 && args[0].contains("train")){
 			NBCTrainer trainer = new NBCTrainer();
+			trainer.setClassifier(classifier);
 			for(File docclassdir : docsdirectory.listFiles()){
 				classtype = docclassdir.getName();
+				System.out.println("Training class " + classtype);
 				for(File doc : docclassdir.listFiles()) {
-					trainer.trainNBC(doc, classifier, classtype);
+					trainer.trainNBC(doc, classtype);
 				}
 			}
+			classifier = trainer.getClassifier();
 			
 			NBCTester tester = new NBCTester();
+			tester.setClassifier(classifier);
 			File testdirectory = new File("TestFiles");
 			if (testdirectory.exists()) {
 				for(File doc : testdirectory.listFiles()){
-					System.out.println(doc.getName() + ": " + tester.testNBC(doc, classifier));
+					System.out.println(doc.getName() + ": " + tester.testNBC(doc));
 				}
 			}
 		} 
@@ -70,8 +75,9 @@ public class NBCMain{
 		 */
 		else if(args[0].contains("test")){
 			NBCTester tester = new NBCTester();
+			tester.setClassifier(classifier);
 			for(File doc : docsdirectory.listFiles()){
-				System.out.println(doc.getName() + ": " + tester.testNBC(doc, classifier));
+				System.out.println(doc.getName() + ": " + tester.testNBC(doc));
 			}
 		}
 		
@@ -88,6 +94,7 @@ public class NBCMain{
 			ObjectOutputStream objout = new ObjectOutputStream(fileout);
 			objout.writeObject(classifier);
 			objout.close(); fileout.close();
+			System.out.println("Classifer saved at " + savefile);
 		}catch(IOException e){
 			e.printStackTrace();
 			System.exit(1);

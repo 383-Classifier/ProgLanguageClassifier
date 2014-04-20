@@ -39,7 +39,7 @@ public class Classifier implements Serializable{
 		
 		for (String nbcClass : wordCountsByClass.keySet()) {
 			double value = getClassPosterior(nbcClass, bag);
-			if (value < maximumValue) {
+			if (value > maximumValue) {
 				maximumValue = value;
 				maximumClass = nbcClass;
 			}

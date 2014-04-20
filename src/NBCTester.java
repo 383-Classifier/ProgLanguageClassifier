@@ -5,15 +5,14 @@ import java.util.HashMap;
 
 public class NBCTester extends NBCBagger{
 
-	String testNBC(File file, Classifier cla) throws FileNotFoundException{
-		Classifier classifier = cla;
+	String testNBC(File file) throws FileNotFoundException{
 		HashMap<String, Integer> bag = null;
 		try {
 			bag = makeBag(file);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return classifier.test(bag);
+		return nbc.test(bag);
 	}
 	
 }

@@ -64,6 +64,7 @@ public class NBCMain{
 
 	}
 	
+
 	public static Classifier loadClassifier(String loadfile) {
 		Classifier classifier = null;
 		try{
@@ -90,13 +91,15 @@ public class NBCMain{
 		trainer.setClassifier(classifier);
 		for(File docclassdir : docsdirectory.listFiles()){
 			String classtype = docclassdir.getName();
-			System.out.println("Training class " + classtype);
-			for(File doc : docclassdir.listFiles()) {
-				if (doc.getName().matches(".*.txt")) {
-					try {
-						trainer.trainNBC(doc, classtype);
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
+			if (!classtype.matches("\\..*")) {
+				System.out.println("Training class " + classtype);
+				for(File doc : docclassdir.listFiles()) {
+					if (doc.getName().matches(".*\\.txt")) {
+						try {
+							trainer.trainNBC(doc, classtype);
+						} catch (FileNotFoundException e) {
+							e.printStackTrace();
+						}
 					}
 				}
 			}
@@ -110,7 +113,7 @@ public class NBCMain{
 		NBCTester tester = new NBCTester();
 		tester.setClassifier(classifier);
 		for(File doc : docsdirectory.listFiles()){
-			if (doc.getName().matches(".*.txt")) {
+			if (doc.getName().matches(".*\\.txt")) {
 				try {
 					System.out.println(doc.getName() + ": " + tester.testNBC(doc));
 				} catch (FileNotFoundException e) {
@@ -125,7 +128,7 @@ public class NBCMain{
 		NBCTester tester = new NBCTester();
 		tester.setClassifier(classifier);
 		for(File doc : docsdirectory.listFiles()){
-			if (doc.getName().matches(".*.txt")) {
+			if (doc.getName().matches(".*\\.txt")) {
 				try {
 					System.out.println(doc.getName() + ":\n" + tester.testDetailedNBC(doc));
 				} catch (FileNotFoundException e) {

@@ -53,19 +53,11 @@ public class NBCMain{
 				classtype = docclassdir.getName();
 				System.out.println("Training class " + classtype);
 				for(File doc : docclassdir.listFiles()) {
-					trainer.trainNBC(doc, classtype);
+					if (doc.getName().matches(".*.txt"))
+						trainer.trainNBC(doc, classtype);
 				}
 			}
 			classifier = trainer.getClassifier();
-			
-			NBCTester tester = new NBCTester();
-			tester.setClassifier(classifier);
-			File testdirectory = new File("TestFiles");
-			if (testdirectory.exists()) {
-				for(File doc : testdirectory.listFiles()){
-					System.out.println(doc.getName() + ": " + tester.testNBC(doc));
-				}
-			}
 		} 
 		
 		/* 
@@ -75,7 +67,8 @@ public class NBCMain{
 			NBCTester tester = new NBCTester();
 			tester.setClassifier(classifier);
 			for(File doc : docsdirectory.listFiles()){
-				System.out.println(doc.getName() + ":\n" + tester.testDetailedNBC(doc));
+				if (doc.getName().matches(".*.txt"))
+					System.out.println(doc.getName() + ":\n" + tester.testDetailedNBC(doc));
 			}
 		}
 		
@@ -89,7 +82,8 @@ public class NBCMain{
 			NBCTester tester = new NBCTester();
 			tester.setClassifier(classifier);
 			for(File doc : docsdirectory.listFiles()){
-				System.out.println(doc.getName() + ": " + tester.testNBC(doc));
+				if (doc.getName().matches(".*.txt"))
+					System.out.println(doc.getName() + ": " + tester.testNBC(doc));
 			}
 		}
 		

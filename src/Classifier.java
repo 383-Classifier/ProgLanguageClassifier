@@ -1,6 +1,4 @@
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.io.Serializable;
 
 public class Classifier implements Serializable{

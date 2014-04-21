@@ -92,7 +92,7 @@ public class NBCMain{
 		 * Wrong argument format, I guess
 		 */
 		else{
-			System.out.println("usage: [train/test] [documentDir] [loadFile] [saveFile] [ifTrain:class]");
+			System.out.println("usage: [train/test] [documentDir] [loadFile] [saveFile]");
 			System.exit(0);
 		}
 		

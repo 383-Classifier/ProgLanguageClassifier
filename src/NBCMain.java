@@ -8,7 +8,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 public class NBCMain{
-	
+
 	public static void main(String[] args) throws FileNotFoundException{
 		/*
 		 * Wrong argument format. We'll decide on the program's arguments and then we can set up the usage warning
@@ -17,7 +17,7 @@ public class NBCMain{
 			System.out.println("usage: [train/test] [documentDir] [loadFile] [saveFile]");
 			System.exit(0);
 		}
-		
+
 		/*
 		 * init
 		 */
@@ -25,34 +25,36 @@ public class NBCMain{
 		String loadfile = args[2];						//existing serialized
 		String savefile = args[3];						//where to save new serialized 
 		Classifier classifier = loadClassifier(loadfile);
-		
+
 		/*
 		 * Train over documents in docsdirectory for classtype
 		 */
 		if(args.length>3 && args[0].contains("train")){
 			classifier = train(classifier, docsdirectory);
 		} 
-		
+
 		/* 
 		 * Detailed Test
 		 */
 		else if(args[0].contains("rtt")){
 			ArrayList<File> filesSkipped = new ArrayList<File>();
 			ArrayList<String> classesSkipped = new ArrayList<String>();
-			classifier = trainSkipRandom(classifier, docsdirectory, filesSkipped, classesSkipped);
+			double probSkip = 0.5;
+			classifier = trainSkipRandom(classifier, docsdirectory, filesSkipped, classesSkipped, probSkip);
+			testSkippedFiles(classifier, filesSkipped, classesSkipped);
 		}
-		
+
 		/*
 		 * Test over document(s) in docsdirectory
 		 * 		I was thinking of storing each document's result in a hashmap to print out later
 		 * 		but for now I'll leave it to print the file name and its result when it makes a guess
 		 */
-		
+
 		else if(args[0].contains("test")){
 			test(classifier, docsdirectory);
 		}
-		
-		
+
+
 		/*
 		 * Wrong argument format, I guess
 		 */
@@ -60,13 +62,13 @@ public class NBCMain{
 			System.out.println("usage: [train/test] [documentDir] [loadFile] [saveFile] [ifTrain:class]");
 			System.exit(0);
 		}
-		
+
 		saveClassifier(classifier, savefile);
-		
+
 
 
 	}
-	
+
 
 	public static Classifier loadClassifier(String loadfile) {
 		Classifier classifier = null;
@@ -88,7 +90,7 @@ public class NBCMain{
 		}
 		return classifier;
 	}
-	
+
 	public static Classifier train(Classifier classifier, File docsdirectory) {
 		NBCTrainer trainer = new NBCTrainer();
 		trainer.setClassifier(classifier);
@@ -110,8 +112,8 @@ public class NBCMain{
 		classifier = trainer.getClassifier();
 		return classifier;
 	}
-	
-	public static Classifier trainSkipRandom(Classifier classifier, File docsdirectory, ArrayList<File> filesSkipped, ArrayList<String> classesSkipped) {
+
+	public static Classifier trainSkipRandom(Classifier classifier, File docsdirectory, ArrayList<File> filesSkipped, ArrayList<String> classesSkipped, double probSkip) {
 		NBCTrainer trainer = new NBCTrainer();
 		trainer.setClassifier(classifier);
 		for(File docclassdir : docsdirectory.listFiles()){
@@ -120,7 +122,7 @@ public class NBCMain{
 				System.out.println("Training class " + classtype);
 				for(File doc : docclassdir.listFiles()) {
 					if (doc.getName().matches(".*\\.txt")) {
-						if (Math.random() < 0.1) {
+						if (Math.random() < probSkip) {
 							filesSkipped.add(doc);
 							classesSkipped.add(classtype);
 						} else {
@@ -137,8 +139,8 @@ public class NBCMain{
 		classifier = trainer.getClassifier();
 		return classifier;
 	}
-	
-	
+
+
 	public static void test(Classifier classifier, File docsdirectory) {
 		NBCTester tester = new NBCTester();
 		tester.setClassifier(classifier);
@@ -152,8 +154,27 @@ public class NBCMain{
 			}
 		}
 	}
-	
-	
+
+	public static void testSkippedFiles(Classifier classifier, ArrayList<File> filesSkipped, ArrayList<String> classesSkipped) {
+		NBCTester tester = new NBCTester();
+		tester.setClassifier(classifier);
+		int filesCorrect = 0;
+		int filesTested = filesSkipped.size();
+		for (int i=0; i<filesSkipped.size(); i++) {
+			File doc = filesSkipped.get(i);
+			String classtype = classesSkipped.get(i);
+			try {
+				if (classtype.equals(tester.testNBC(doc)))
+					filesCorrect++;
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+
+		}
+		System.out.println(filesCorrect + "/" + filesTested + " correct");
+	}
+
+
 	public static void testDetailed(Classifier classifier, File docsdirectory) {
 		NBCTester tester = new NBCTester();
 		tester.setClassifier(classifier);
@@ -167,7 +188,7 @@ public class NBCMain{
 			}
 		}
 	}
-	
+
 	public static void saveClassifier(Classifier classifier, String savefile) {
 		try{
 			FileOutputStream fileout = new FileOutputStream(savefile);

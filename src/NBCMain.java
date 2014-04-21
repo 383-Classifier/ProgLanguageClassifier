@@ -23,9 +23,49 @@ public class NBCMain{
 		File docsdirectory = new File(args[1]);			//directory of class directories each containing files to test/train, 
 		String loadfile = args[2];						//existing serialized
 		String savefile = args[3];						//where to save new serialized 
-		String classtype = null;
-		Classifier classifier = null;
+		Classifier classifier = loadClassifier(loadfile);
 		
+		/*
+		 * Train over documents in docsdirectory for classtype
+		 */
+		if(args.length>3 && args[0].contains("train")){
+			classifier = train(classifier, docsdirectory);
+		} 
+		
+		/* 
+		 * Detailed Test
+		 */
+		else if(args[0].contains("test-detailed")){
+			testDetailed(classifier, docsdirectory);
+		}
+		
+		/*
+		 * Test over document(s) in docsdirectory
+		 * 		I was thinking of storing each document's result in a hashmap to print out later
+		 * 		but for now I'll leave it to print the file name and its result when it makes a guess
+		 */
+		
+		else if(args[0].contains("test")){
+			test(classifier, docsdirectory);
+		}
+		
+		
+		/*
+		 * Wrong argument format, I guess
+		 */
+		else{
+			System.out.println("usage: [train/test] [documentDir] [loadFile] [saveFile] [ifTrain:class]");
+			System.exit(0);
+		}
+		
+		saveClassifier(classifier, savefile);
+		
+
+
+	}
+	
+	public static Classifier loadClassifier(String loadfile) {
+		Classifier classifier = null;
 		try{
 			FileInputStream filein = new FileInputStream(loadfile);
 			ObjectInputStream objin = new ObjectInputStream(filein);
@@ -42,60 +82,60 @@ public class NBCMain{
 			e.printStackTrace();
 			System.exit(1);
 		}
-		
-		/*
-		 * Train over documents in docsdirectory for classtype
-		 */
-		if(args.length>3 && args[0].contains("train")){
-			NBCTrainer trainer = new NBCTrainer();
-			trainer.setClassifier(classifier);
-			for(File docclassdir : docsdirectory.listFiles()){
-				classtype = docclassdir.getName();
-				System.out.println("Training class " + classtype);
-				for(File doc : docclassdir.listFiles()) {
-					if (doc.getName().matches(".*.txt"))
+		return classifier;
+	}
+	
+	public static Classifier train(Classifier classifier, File docsdirectory) {
+		NBCTrainer trainer = new NBCTrainer();
+		trainer.setClassifier(classifier);
+		for(File docclassdir : docsdirectory.listFiles()){
+			String classtype = docclassdir.getName();
+			System.out.println("Training class " + classtype);
+			for(File doc : docclassdir.listFiles()) {
+				if (doc.getName().matches(".*.txt")) {
+					try {
 						trainer.trainNBC(doc, classtype);
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					}
 				}
 			}
-			classifier = trainer.getClassifier();
-		} 
-		
-		/* 
-		 * Detailed Test
-		 */
-		else if(args[0].contains("test-detailed")){
-			NBCTester tester = new NBCTester();
-			tester.setClassifier(classifier);
-			for(File doc : docsdirectory.listFiles()){
-				if (doc.getName().matches(".*.txt"))
-					System.out.println(doc.getName() + ":\n" + tester.testDetailedNBC(doc));
-			}
 		}
-		
-		/*
-		 * Test over document(s) in docsdirectory
-		 * 		I was thinking of storing each document's result in a hashmap to print out later
-		 * 		but for now I'll leave it to print the file name and its result when it makes a guess
-		 */
-		
-		else if(args[0].contains("test")){
-			NBCTester tester = new NBCTester();
-			tester.setClassifier(classifier);
-			for(File doc : docsdirectory.listFiles()){
-				if (doc.getName().matches(".*.txt"))
+		classifier = trainer.getClassifier();
+		return classifier;
+	}
+	
+	
+	public static void test(Classifier classifier, File docsdirectory) {
+		NBCTester tester = new NBCTester();
+		tester.setClassifier(classifier);
+		for(File doc : docsdirectory.listFiles()){
+			if (doc.getName().matches(".*.txt")) {
+				try {
 					System.out.println(doc.getName() + ": " + tester.testNBC(doc));
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				}
 			}
 		}
-		
-		
-		/*
-		 * Wrong argument format, I guess
-		 */
-		else{
-			System.out.println("usage: [train/test] [documentDir] [loadFile] [saveFile]");
-			System.exit(0);
+	}
+	
+	
+	public static void testDetailed(Classifier classifier, File docsdirectory) {
+		NBCTester tester = new NBCTester();
+		tester.setClassifier(classifier);
+		for(File doc : docsdirectory.listFiles()){
+			if (doc.getName().matches(".*.txt")) {
+				try {
+					System.out.println(doc.getName() + ":\n" + tester.testDetailedNBC(doc));
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				}
+			}
 		}
-		
+	}
+	
+	public static void saveClassifier(Classifier classifier, String savefile) {
 		try{
 			FileOutputStream fileout = new FileOutputStream(savefile);
 			ObjectOutputStream objout = new ObjectOutputStream(fileout);
@@ -106,10 +146,5 @@ public class NBCMain{
 			e.printStackTrace();
 			System.exit(1);
 		}
-		
-
-
 	}
-	
-	
 }

@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 
 public class NBCMain{
 	
@@ -35,8 +36,10 @@ public class NBCMain{
 		/* 
 		 * Detailed Test
 		 */
-		else if(args[0].contains("test-detailed")){
-			testDetailed(classifier, docsdirectory);
+		else if(args[0].contains("rtt")){
+			ArrayList<File> filesSkipped = new ArrayList<File>();
+			ArrayList<String> classesSkipped = new ArrayList<String>();
+			classifier = trainSkipRandom(classifier, docsdirectory, filesSkipped, classesSkipped);
 		}
 		
 		/*
@@ -99,6 +102,33 @@ public class NBCMain{
 							trainer.trainNBC(doc, classtype);
 						} catch (FileNotFoundException e) {
 							e.printStackTrace();
+						}
+					}
+				}
+			}
+		}
+		classifier = trainer.getClassifier();
+		return classifier;
+	}
+	
+	public static Classifier trainSkipRandom(Classifier classifier, File docsdirectory, ArrayList<File> filesSkipped, ArrayList<String> classesSkipped) {
+		NBCTrainer trainer = new NBCTrainer();
+		trainer.setClassifier(classifier);
+		for(File docclassdir : docsdirectory.listFiles()){
+			String classtype = docclassdir.getName();
+			if (!classtype.matches("\\..*")) {
+				System.out.println("Training class " + classtype);
+				for(File doc : docclassdir.listFiles()) {
+					if (doc.getName().matches(".*\\.txt")) {
+						if (Math.random() < 0.1) {
+							filesSkipped.add(doc);
+							classesSkipped.add(classtype);
+						} else {
+							try {
+								trainer.trainNBC(doc, classtype);
+							} catch (FileNotFoundException e) {
+								e.printStackTrace();
+							}
 						}
 					}
 				}

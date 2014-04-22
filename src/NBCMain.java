@@ -36,6 +36,44 @@ public class NBCMain{
 		/* 
 		 * Detailed Test
 		 */
+		
+		else if(args[0].contains("rtt-loop")){
+			ArrayList<File> filesSkipped = new ArrayList<File>();
+			ArrayList<String> classesSkipped = new ArrayList<String>();
+			ArrayList<Double> correct = new ArrayList<Double>();
+			double probSkip = 0.99;
+			for (int i=1; i<=100; i++) {
+				filesSkipped = new ArrayList<File>();
+				classesSkipped = new ArrayList<String>();
+				classifier = trainSkipRandom(new Classifier(), docsdirectory, filesSkipped, classesSkipped, probSkip);
+				correct.add(testSkippedFiles(classifier, filesSkipped, classesSkipped));
+				
+				double sum = 0;
+				double sumOfSqErr = 0;
+				for (double d : correct) {
+					sum += d;
+				}
+				double mean = sum /correct.size();
+				for (double d : correct) {
+					sumOfSqErr += (d - mean) * (d - mean);
+				}
+				double variance = sumOfSqErr / correct.size();
+				System.out.println("Mean: " + mean + "\tVariance: " + variance);
+				
+			}
+			double sum = 0;
+			double sumOfSqErr = 0;
+			for (double d : correct) {
+				sum += d;
+			}
+			double mean = sum /correct.size();
+			for (double d : correct) {
+				sumOfSqErr += (d - mean) * (d - mean);
+			}
+			double variance = sumOfSqErr / correct.size();
+			System.out.println("Mean: " + mean + "\tVariance: " + variance);
+		}
+		
 		else if(args[0].contains("rtt")){
 			ArrayList<File> filesSkipped = new ArrayList<File>();
 			ArrayList<String> classesSkipped = new ArrayList<String>();
@@ -119,7 +157,7 @@ public class NBCMain{
 		for(File docclassdir : docsdirectory.listFiles()){
 			String classtype = docclassdir.getName();
 			if (!classtype.matches("\\..*")) {
-				System.out.println("Training class " + classtype);
+				//System.out.println("Training class " + classtype);
 				for(File doc : docclassdir.listFiles()) {
 					if (doc.getName().matches(".*\\.txt")) {
 						if (Math.random() < probSkip) {
@@ -155,7 +193,7 @@ public class NBCMain{
 		}
 	}
 
-	public static void testSkippedFiles(Classifier classifier, ArrayList<File> filesSkipped, ArrayList<String> classesSkipped) {
+	public static double testSkippedFiles(Classifier classifier, ArrayList<File> filesSkipped, ArrayList<String> classesSkipped) {
 		NBCTester tester = new NBCTester();
 		tester.setClassifier(classifier);
 		int filesCorrect = 0;
@@ -172,6 +210,7 @@ public class NBCMain{
 
 		}
 		System.out.println(filesCorrect + "/" + filesTested + " correct");
+		return ((double)filesCorrect)/filesTested;
 	}
 
 

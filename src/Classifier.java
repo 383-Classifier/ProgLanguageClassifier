@@ -1,4 +1,8 @@
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map.Entry;
 import java.io.Serializable;
 
 public class Classifier implements Serializable{
@@ -87,6 +91,42 @@ public class Classifier implements Serializable{
 		return (nci + alpha) / (nc + alphaSum);
 	}
 	
+	private double getComplementLikelihood(String nbcClass, String word) {
+		double alphaSum = 0;
+		double nc = 0;
+		double nci = 0;
+		for (String c : wordCountsByClass.keySet()) {
+			if (!c.equals(nbcClass)) {
+				 alphaSum += wordCountsByClass.get(c).size() * alpha;
+				 nc += wordCountsTotal.get(c);
+				 if (wordCountsByClass.get(c).containsKey(word))
+					 nci += wordCountsByClass.get(c).get(word);
+			}
+		}
+		return (nci + alpha) / (nc + alphaSum);
+	}
+	
+	private double getRelativeLikelihood(String nbcClass, String word) {
+		return getWordLikelihood(nbcClass, word) / getComplementLikelihood(nbcClass, word);
+	}
+	
+	public LinkedList<Entry<String, Double>> getAllRelativeLikelihoods(String nbcClass) {
+		HashMap<String, Double> result = new HashMap<String, Double>();
+		for (String word : wordCountsByClass.get(nbcClass).keySet())
+			result.put(word, getRelativeLikelihood(nbcClass, word));
+		
+		LinkedList<Entry<String, Double>> list= new LinkedList<Entry<String, Double>>(result.entrySet());
+		Collections.sort(list, new Comparator<Entry<String, Double>>() {
+            @Override
+            public int compare(Entry<String, Double> o1, Entry<String, Double> o2) {
+                return o1.getValue().compareTo(o2.getValue());
+            }
+        });
+		Collections.reverse(list);
+		
+		return list;
+	}
+	
 	private double getClassPrior(String nbcClass) {
 		int numberOfClasses = wordCountsByClass.size();
 		
@@ -98,7 +138,8 @@ public class Classifier implements Serializable{
 		
 		for (String word : bag.keySet()) {
 			int wordFrequency = bag.get(word);
-			double wordLogLikelihood = wordFrequency * Math.log(getWordLikelihood(nbcClass, word));
+			double wordLogLikelihood = wordFrequency * Math.log(getRelativeLikelihood(nbcClass, word));
+			//double wordLogLikelihood = wordFrequency * Math.log(getWordLikelihood(nbcClass, word));
 			sumOfLogLikelihoods += wordLogLikelihood;
 		}
 

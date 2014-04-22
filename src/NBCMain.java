@@ -47,26 +47,25 @@ public class NBCMain{
 				classesSkipped = new ArrayList<String>();
 				classifier = trainSkipRandom(new Classifier(), docsdirectory, filesSkipped, classesSkipped, probSkip);
 				correct.add(testSkippedFiles(classifier, filesSkipped, classesSkipped));
-
-				double sum = 0;
-				double sumOfSqErr = 0;
-				int count = 0;
-				for (double v : correct) {
-					if (!Double.isNaN(v)) {
-						sum += v;
-						count++;
-					}
-				}
-				double mean = sum / count;
-				for (double v : correct) {
-					if (!Double.isNaN(v)) {
-						sumOfSqErr += (v - mean) * (v - mean);
-					}
-				}
-				double variance = sumOfSqErr / count;
-				System.out.println("Mean: " + mean + "\tVariance: " + variance);
-
 			}
+			
+			double sum = 0;
+			double sumOfSqErr = 0;
+			int count = 0;
+			for (double v : correct) {
+				if (!Double.isNaN(v)) {
+					sum += v;
+					count++;
+				}
+			}
+			double mean = sum / count;
+			for (double v : correct) {
+				if (!Double.isNaN(v)) {
+					sumOfSqErr += (v - mean) * (v - mean);
+				}
+			}
+			double variance = sumOfSqErr / count;
+			System.out.println("Mean: " + mean + "\tVariance: " + variance);
 		}
 
 		else if(args[0].contains("rtt")){
@@ -80,7 +79,7 @@ public class NBCMain{
 		else if(args[0].contains("tebt")) {
 			ArrayList<File> files = new ArrayList<File>();
 			ArrayList<String> classes = new ArrayList<String>();
-			ArrayList<String> results = new ArrayList<String>();
+			//ArrayList<String> results = new ArrayList<String>();
 			getAllFiles(docsdirectory, files, classes);
 			int correct = 0;
 			for (int i=0; i<files.size(); i++) {
@@ -105,9 +104,15 @@ public class NBCMain{
 		}
 
 
+		else if(args[0].contains("grl")) {
+			classifier = train(classifier, docsdirectory);
+			System.out.println(classifier.getAllRelativeLikelihoods("Python"));
+		}
+		
 		/*
 		 * Wrong argument format, I guess
 		 */
+		
 		else{
 			System.out.println("usage: [train/test] [documentDir] [loadFile] [saveFile] [ifTrain:class]");
 			System.exit(0);
@@ -162,6 +167,7 @@ public class NBCMain{
 		classifier = trainer.getClassifier();
 		return classifier;
 	}
+	
 
 	public static Classifier trainSkipRandom(Classifier classifier, File docsdirectory, ArrayList<File> filesSkipped, ArrayList<String> classesSkipped, double probSkip) {
 		NBCTrainer trainer = new NBCTrainer();

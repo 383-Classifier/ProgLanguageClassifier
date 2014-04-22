@@ -36,18 +36,18 @@ public class NBCMain{
 		/* 
 		 * Detailed Test
 		 */
-		
+
 		else if(args[0].contains("rtt-loop")){
 			ArrayList<File> filesSkipped = new ArrayList<File>();
 			ArrayList<String> classesSkipped = new ArrayList<String>();
 			ArrayList<Double> correct = new ArrayList<Double>();
-			double probSkip = 0.01;
+			double probSkip = 0.25;
 			for (int i=1; i<=100; i++) {
 				filesSkipped = new ArrayList<File>();
 				classesSkipped = new ArrayList<String>();
 				classifier = trainSkipRandom(new Classifier(), docsdirectory, filesSkipped, classesSkipped, probSkip);
 				correct.add(testSkippedFiles(classifier, filesSkipped, classesSkipped));
-				
+
 				double sum = 0;
 				double sumOfSqErr = 0;
 				int count = 0;
@@ -65,10 +65,10 @@ public class NBCMain{
 				}
 				double variance = sumOfSqErr / count;
 				System.out.println("Mean: " + mean + "\tVariance: " + variance);
-				
+
 			}
 		}
-		
+
 		else if(args[0].contains("rtt")){
 			ArrayList<File> filesSkipped = new ArrayList<File>();
 			ArrayList<String> classesSkipped = new ArrayList<String>();
@@ -77,12 +77,29 @@ public class NBCMain{
 			testSkippedFiles(classifier, filesSkipped, classesSkipped);
 		}
 
+		else if(args[0].contains("tebt")) {
+			ArrayList<File> files = new ArrayList<File>();
+			ArrayList<String> classes = new ArrayList<String>();
+			ArrayList<String> results = new ArrayList<String>();
+			getAllFiles(docsdirectory, files, classes);
+			int correct = 0;
+			for (int i=0; i<files.size(); i++) {
+				File file = files.get(i);
+				String classtype = classes.get(i);
+				classifier = trainSkipFile(new Classifier(), files, classes, file);
+				String result = testFile(classifier, file);
+				if (result.equals(classtype))
+					correct++;
+				System.out.println(file.getName() + " \tClass: " + classtype + " \tResult: " + result);
+			}
+			System.out.println(correct + "/" + files.size() + ", " + ((double)correct)/files.size() + " correct");
+		}
+		
 		/*
 		 * Test over document(s) in docsdirectory
 		 * 		I was thinking of storing each document's result in a hashmap to print out later
 		 * 		but for now I'll leave it to print the file name and its result when it makes a guess
 		 */
-
 		else if(args[0].contains("test")){
 			test(classifier, docsdirectory);
 		}
@@ -173,6 +190,50 @@ public class NBCMain{
 		return classifier;
 	}
 
+	public static void getAllFiles(File docsdirectory, ArrayList<File> files, ArrayList<String> classes) {
+		for(File docclassdir : docsdirectory.listFiles()){
+			String classtype = docclassdir.getName();
+			if (!classtype.matches("\\..*")) {
+				//System.out.println("Training class " + classtype);
+				for(File doc : docclassdir.listFiles()) {
+					if (doc.getName().matches(".*\\.txt")) {
+						files.add(doc);
+						classes.add(classtype);
+					}
+				}
+			}
+		}
+	}
+
+	public static Classifier trainSkipFile(Classifier classifier, ArrayList<File> files, ArrayList<String> classes, File skip) {
+		NBCTrainer trainer = new NBCTrainer();
+		trainer.setClassifier(classifier);
+		for (int i=0; i<files.size(); i++) {
+			File doc = files.get(i);
+			String classtype = classes.get(i);
+			if (!doc.equals(skip)) {
+				try {
+					trainer.trainNBC(doc, classtype);
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		classifier = trainer.getClassifier();
+		return classifier;
+	}
+
+	public static String testFile(Classifier classifier, File file) {
+		NBCTester tester = new NBCTester();
+		tester.setClassifier(classifier);
+		String classtype = null;
+		try {
+			classtype = tester.testNBC(file);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		return classtype;
+	}
 
 	public static void test(Classifier classifier, File docsdirectory) {
 		NBCTester tester = new NBCTester();

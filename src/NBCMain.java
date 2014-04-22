@@ -41,7 +41,7 @@ public class NBCMain{
 			ArrayList<File> filesSkipped = new ArrayList<File>();
 			ArrayList<String> classesSkipped = new ArrayList<String>();
 			ArrayList<Double> correct = new ArrayList<Double>();
-			double probSkip = 0.99;
+			double probSkip = 0.01;
 			for (int i=1; i<=100; i++) {
 				filesSkipped = new ArrayList<File>();
 				classesSkipped = new ArrayList<String>();
@@ -50,28 +50,23 @@ public class NBCMain{
 				
 				double sum = 0;
 				double sumOfSqErr = 0;
-				for (double d : correct) {
-					sum += d;
+				int count = 0;
+				for (double v : correct) {
+					if (!Double.isNaN(v)) {
+						sum += v;
+						count++;
+					}
 				}
-				double mean = sum /correct.size();
-				for (double d : correct) {
-					sumOfSqErr += (d - mean) * (d - mean);
+				double mean = sum / count;
+				for (double v : correct) {
+					if (!Double.isNaN(v)) {
+						sumOfSqErr += (v - mean) * (v - mean);
+					}
 				}
-				double variance = sumOfSqErr / correct.size();
+				double variance = sumOfSqErr / count;
 				System.out.println("Mean: " + mean + "\tVariance: " + variance);
 				
 			}
-			double sum = 0;
-			double sumOfSqErr = 0;
-			for (double d : correct) {
-				sum += d;
-			}
-			double mean = sum /correct.size();
-			for (double d : correct) {
-				sumOfSqErr += (d - mean) * (d - mean);
-			}
-			double variance = sumOfSqErr / correct.size();
-			System.out.println("Mean: " + mean + "\tVariance: " + variance);
 		}
 		
 		else if(args[0].contains("rtt")){

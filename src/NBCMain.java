@@ -1,11 +1,14 @@
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class NBCMain{
 
@@ -38,40 +41,68 @@ public class NBCMain{
 		 */
 
 		else if(args[0].contains("rtt-loop")){
-			ArrayList<File> filesSkipped = new ArrayList<File>();
-			ArrayList<String> classesSkipped = new ArrayList<String>();
-			ArrayList<Double> correct = new ArrayList<Double>();
-			double probSkip = 0.25;
-			for (int i=1; i<=100; i++) {
-				filesSkipped = new ArrayList<File>();
-				classesSkipped = new ArrayList<String>();
-				classifier = trainSkipRandom(new Classifier(), docsdirectory, filesSkipped, classesSkipped, probSkip);
-				correct.add(testSkippedFiles(classifier, filesSkipped, classesSkipped));
+
+			
+			HashMap<Integer, Double> meanMap = new HashMap<Integer, Double>();
+			HashMap<Integer, Double> varMap = new HashMap<Integer, Double>();
+			
+			for (int prob = 5; prob <= 95; prob += 5) {
+				ArrayList<Double> correct = new ArrayList<Double>();
+				
+				System.out.print("Testing " + prob + "%\t");
+				double probTrain = prob/100.0;
+				for (int i=1; i<=1000; i++) {
+					if (i%10 == 0)
+						System.out.print(".");
+					ArrayList<File> filesSkipped = new ArrayList<File>();
+					ArrayList<String> classesSkipped = new ArrayList<String>();
+					classifier = trainSkipRandom(new Classifier(), docsdirectory, filesSkipped, classesSkipped, probTrain);
+					correct.add(testSkippedFiles(classifier, filesSkipped, classesSkipped));
+				}
+				System.out.println();
+				
+				double sum = 0;
+				double sumOfSqErr = 0;
+				int count = 0;
+				for (double v : correct) {
+					if (!Double.isNaN(v)) {
+						sum += v;
+						count++;
+					}
+				}
+				double mean = sum / count;
+				for (double v : correct) {
+					if (!Double.isNaN(v)) {
+						sumOfSqErr += (v - mean) * (v - mean);
+					}
+				}
+				double variance = sumOfSqErr / count;
+				//System.out.println("Mean: " + mean + "\tVariance: " + variance);
+				
+				meanMap.put(prob, mean);
+				varMap.put(prob, variance);
+				
+				try {
+					BufferedWriter writer = new BufferedWriter(new FileWriter("random-test-data/" + prob + ".csv"));
+					for (double v : correct) {
+						writer.write(v + "\n");
+					}
+					writer.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			
-			double sum = 0;
-			double sumOfSqErr = 0;
-			int count = 0;
-			for (double v : correct) {
-				if (!Double.isNaN(v)) {
-					sum += v;
-					count++;
-				}
+			for (int prob = 5; prob <= 95; prob += 5) {
+				System.out.println(prob + "," + meanMap.get(prob) + "," + varMap.get(prob));
 			}
-			double mean = sum / count;
-			for (double v : correct) {
-				if (!Double.isNaN(v)) {
-					sumOfSqErr += (v - mean) * (v - mean);
-				}
-			}
-			double variance = sumOfSqErr / count;
-			System.out.println("Mean: " + mean + "\tVariance: " + variance);
 		}
 
 		else if(args[0].contains("rtt")){
 			ArrayList<File> filesSkipped = new ArrayList<File>();
 			ArrayList<String> classesSkipped = new ArrayList<String>();
-			double probSkip = 0.5;
+			double probSkip = 0.25;
 			classifier = trainSkipRandom(classifier, docsdirectory, filesSkipped, classesSkipped, probSkip);
 			testSkippedFiles(classifier, filesSkipped, classesSkipped);
 		}
@@ -169,7 +200,7 @@ public class NBCMain{
 	}
 	
 
-	public static Classifier trainSkipRandom(Classifier classifier, File docsdirectory, ArrayList<File> filesSkipped, ArrayList<String> classesSkipped, double probSkip) {
+	public static Classifier trainSkipRandom(Classifier classifier, File docsdirectory, ArrayList<File> filesSkipped, ArrayList<String> classesSkipped, double probTrain) {
 		NBCTrainer trainer = new NBCTrainer();
 		trainer.setClassifier(classifier);
 		for(File docclassdir : docsdirectory.listFiles()){
@@ -178,7 +209,7 @@ public class NBCMain{
 				//System.out.println("Training class " + classtype);
 				for(File doc : docclassdir.listFiles()) {
 					if (doc.getName().matches(".*\\.txt")) {
-						if (Math.random() < probSkip) {
+						if (Math.random() > probTrain) {
 							filesSkipped.add(doc);
 							classesSkipped.add(classtype);
 						} else {
@@ -271,7 +302,7 @@ public class NBCMain{
 			}
 
 		}
-		System.out.println(filesCorrect + "/" + filesTested + " correct");
+		//System.out.println(filesCorrect + "/" + filesTested + " correct");
 		return ((double)filesCorrect)/filesTested;
 	}
 

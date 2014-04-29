@@ -110,21 +110,24 @@ public class Classifier implements Serializable{
 		return getWordLikelihood(nbcClass, word) / getComplementLikelihood(nbcClass, word);
 	}
 	
-	public LinkedList<Entry<String, Double>> getAllRelativeLikelihoods(String nbcClass) {
-		HashMap<String, Double> result = new HashMap<String, Double>();
-		for (String word : wordCountsByClass.get(nbcClass).keySet())
-			result.put(word, getRelativeLikelihood(nbcClass, word));
-		
-		LinkedList<Entry<String, Double>> list= new LinkedList<Entry<String, Double>>(result.entrySet());
-		Collections.sort(list, new Comparator<Entry<String, Double>>() {
-            @Override
-            public int compare(Entry<String, Double> o1, Entry<String, Double> o2) {
-                return o1.getValue().compareTo(o2.getValue());
-            }
-        });
-		Collections.reverse(list);
-		
-		return list;
+	public HashMap<String,LinkedList<Entry<String, Double>>> getAllRelativeLikelihoods() {
+		HashMap<String,LinkedList<Entry<String, Double>>> map = new HashMap<String,LinkedList<Entry<String, Double>>>();
+		for (String nbcClass : wordCountsByClass.keySet()) {
+			HashMap<String, Double> result = new HashMap<String, Double>();
+			for (String word : wordCountsByClass.get(nbcClass).keySet())
+				result.put(word, getRelativeLikelihood(nbcClass, word));
+			
+			LinkedList<Entry<String, Double>> list= new LinkedList<Entry<String, Double>>(result.entrySet());
+			Collections.sort(list, new Comparator<Entry<String, Double>>() {
+	            @Override
+	            public int compare(Entry<String, Double> o1, Entry<String, Double> o2) {
+	                return o1.getValue().compareTo(o2.getValue());
+	            }
+	        });
+			Collections.reverse(list);
+			map.put(nbcClass, list);
+		}
+		return map;
 	}
 	
 	private double getClassPrior(String nbcClass) {

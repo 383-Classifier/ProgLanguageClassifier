@@ -9,6 +9,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map.Entry;
 
 public class NBCMain{
 
@@ -37,10 +39,12 @@ public class NBCMain{
 		} 
 
 		/* 
-		 * Detailed Test
+		 * Performs random skip on each probability [5%, 10%, ..., 95%]
+		 * 100 times per probability, outputs each probability to a csv file
+		 * and prints the mean at the end.
 		 */
 
-		else if(args[0].contains("rtt-loop")){
+		else if(args[0].contains("random-skip-loop")){
 
 			
 			HashMap<Integer, Double> meanMap = new HashMap<Integer, Double>();
@@ -51,8 +55,8 @@ public class NBCMain{
 				
 				System.out.print("Testing " + prob + "%\t");
 				double probTrain = prob/100.0;
-				for (int i=1; i<=1000; i++) {
-					if (i%10 == 0)
+				for (int i=1; i<=100; i++) {
+					if (i%1 == 0)
 						System.out.print(".");
 					ArrayList<File> filesSkipped = new ArrayList<File>();
 					ArrayList<String> classesSkipped = new ArrayList<String>();
@@ -99,15 +103,8 @@ public class NBCMain{
 			}
 		}
 
-		else if(args[0].contains("rtt")){
-			ArrayList<File> filesSkipped = new ArrayList<File>();
-			ArrayList<String> classesSkipped = new ArrayList<String>();
-			double probSkip = 0.25;
-			classifier = trainSkipRandom(classifier, docsdirectory, filesSkipped, classesSkipped, probSkip);
-			testSkippedFiles(classifier, filesSkipped, classesSkipped);
-		}
 
-		else if(args[0].contains("tebt")) {
+		else if(args[0].contains("one-vs-all-but-one")) {
 			ArrayList<File> files = new ArrayList<File>();
 			ArrayList<String> classes = new ArrayList<String>();
 			//ArrayList<String> results = new ArrayList<String>();
@@ -134,10 +131,16 @@ public class NBCMain{
 			test(classifier, docsdirectory);
 		}
 
-
-		else if(args[0].contains("grl")) {
+		
+		/*
+		 * Get top 100 features (relative likelihood, descending order) of each language.
+		 */
+		else if(args[0].contains("likelihood-details")) {
 			classifier = train(classifier, docsdirectory);
-			System.out.println(classifier.getAllRelativeLikelihoods("Python"));
+			HashMap<String, LinkedList<Entry<String, Double>>> relativeLikelihoods = classifier.getAllRelativeLikelihoods();
+			for (String nbcClass : relativeLikelihoods.keySet()) {
+				System.out.println(nbcClass + ": " + relativeLikelihoods.get(nbcClass).subList(0, 99));
+			}
 		}
 		
 		/*
@@ -145,7 +148,7 @@ public class NBCMain{
 		 */
 		
 		else{
-			System.out.println("usage: [train/test] [documentDir] [loadFile] [saveFile] [ifTrain:class]");
+			System.out.println("usage: [train|test|one-vs-all-but-one|random-skip-loop] [documentDir] [loadFile] [saveFile] [ifTrain:class]");
 			System.exit(0);
 		}
 
@@ -304,21 +307,6 @@ public class NBCMain{
 		}
 		//System.out.println(filesCorrect + "/" + filesTested + " correct");
 		return ((double)filesCorrect)/filesTested;
-	}
-
-
-	public static void testDetailed(Classifier classifier, File docsdirectory) {
-		NBCTester tester = new NBCTester();
-		tester.setClassifier(classifier);
-		for(File doc : docsdirectory.listFiles()){
-			if (doc.getName().matches(".*\\.txt")) {
-				try {
-					System.out.println(doc.getName() + ":\n" + tester.testDetailedNBC(doc));
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				}
-			}
-		}
 	}
 
 	public static void saveClassifier(Classifier classifier, String savefile) {

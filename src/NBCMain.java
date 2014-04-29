@@ -148,7 +148,7 @@ public class NBCMain{
 		 */
 		
 		else{
-			System.out.println("usage: [train|test|one-vs-all-but-one|random-skip-loop] [documentDir] [loadFile] [saveFile] [ifTrain:class]");
+			System.out.println("usage: [train|test|one-vs-all-but-one|random-skip-loop|likelihood-details] [documentDir] [loadFile] [saveFile]");
 			System.exit(0);
 		}
 
